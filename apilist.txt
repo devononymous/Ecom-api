@@ -1,0 +1,16 @@
+Products
+
+Get Products - Done
+Add a Products - Done
+Get one Products -Done
+Rate product - Done
+Filter Product - Done
+Get items into the cart - Done
+Add Items to the cart - Done
+Remove Items from the cart - Done
+
+
+User controller
+
+SigUp - Email , Name, Password, TypeOfUser(customer,seller)
+Singin - {Email, Password}
