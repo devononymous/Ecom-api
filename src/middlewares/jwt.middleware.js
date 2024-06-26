@@ -9,11 +9,14 @@ const jwtAuth = (req, res, next)=>{
     }
     // 3. check if token is valid.
     try{
+        const secret_code = process.env.JWT_SECRET
         const payload = jwt.verify(
             token,
-            "e7jbb9ARMRTLqImldBRuX2iuW1tblDj9"
+            secret_code
         );
+        console.log(secret_code, "secret_code runner")
         req.userID = payload.userID;
+        console.log(req.userID, "req.userID")
         console.log("payload ==>", payload);
     } catch(err){
         // 4. return error.

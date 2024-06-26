@@ -1,4 +1,5 @@
 // 1. Import Exprerss
+import "./env.js"
 import express from "express";
 import swagger from "swagger-ui-express";
 import productRouter from "./src/features/product/product.routes.js";
@@ -11,6 +12,8 @@ import { ApplicationError } from "./src/error-handler/applicationError.js";
 import { connectToMongoDB } from "./src/config/mongodb.js";
 // 2. Create Server
 const server = express();
+
+// load all the environment variables  in applicaiton
 
 server.use(express.json());
 

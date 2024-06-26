@@ -2,8 +2,16 @@ import { ApplicationError } from "../../error-handler/applicationError.js";
 import { UserModel } from "../user/user.model.js";
 
 export default class ProductModel {
-  constructor(id, name, desc, category, imageUrl, price, sizes) {
-    this.id = id;
+  constructor(
+    name,
+    desc,
+    category,
+    imageUrl,
+    price,
+    sizes,
+    id
+  ) {
+    this._id = id;
     this.name = name;
     this.desc = desc;
     this.category = category;
@@ -24,16 +32,14 @@ export default class ProductModel {
     return product;
   }
   static filter(minPrice, maxPrice, category) {
-  
-    let result1 = [];
-    const result = products.map((product) => {
-      console.log(product.category, category, "after initializing the result variable should display category")
-      if (product.price >= minPrice && product.price <= maxPrice && product.category == category ) {
-        result1.push(product);
-        console.log(product, "product display here <=== result unused variable");
-      }
+    const result = products.filter((product) => {
+      return (
+        (!minPrice ||  product.price  >= minPrice) &&
+          (!maxPrice || product.price <= maxPrice)  && 
+         (!category || product.category == category)
+        ); 
     });
-    return result1;
+    return result;
   }
 
   static rateProduct(userID, productID, rating){
@@ -78,7 +84,7 @@ export default class ProductModel {
 
   }}
 }
-
+// bro kaise fix kru ise ?
 var products = [
   new ProductModel(
     0,
