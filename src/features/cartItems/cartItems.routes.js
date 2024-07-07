@@ -4,9 +4,9 @@ import CartItemsController from './cartItems.controller.js';
 const cartRouter = express.Router();
 const cartItemsController = new CartItemsController();
 
-cartRouter.post("/", cartItemsController.add);
-cartRouter.get("/", cartItemsController.get);
-cartRouter.delete("/:id", cartItemsController.delete);
+cartRouter.post("/",(req,res)=>{ cartItemsController.add(req,res)});
+cartRouter.get("/", (req,res)=>{cartItemsController.get(req,res)});
+cartRouter.delete("/:id",(req,res)=>{ cartItemsController.delete(req,res)});
 
 
 

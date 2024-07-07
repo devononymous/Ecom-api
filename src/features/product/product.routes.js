@@ -20,5 +20,8 @@ productRouter.post('/rate',(req,res,next)=>{ productController.rateProduct(req,r
 
 productRouter.get('/filter', (req,res)=>{productController.filterProducts(req,res)});
 
+productRouter.get("/averagePrice", (req,res)=>{productController.averagePrice(req,res)});
 productRouter.get("/:id", (req,res)=>{productController.getOneProduct(req,res)});
+
+
 export default productRouter;

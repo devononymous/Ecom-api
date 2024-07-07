@@ -18,17 +18,16 @@ export default class ProductController {
 
   async addProducts(req, res) {
     try {
-      const { name, price, sizes } = req.body;
+      const { name, category, price, sizes } = req.body;
 
       const newProduct = new ProductModel(
         name,
-        null, 
-        null, 
-        req.file.filename, 
+        null,
+        category,
+        req.file.filename,
         parseFloat(price),
-        sizes.split(","),
-      );   
-   
+        sizes.split(",")
+      );
 
       const createdRecord = await this.productRepository.add(newProduct);
       console.log("createdRecord==>", createdRecord);
@@ -44,13 +43,13 @@ export default class ProductController {
 
     try {
       const userID = req.userID;
-      console.log("userID===>", userID)
-      const {productID, rating } = req.body;
+      console.log("userID===>", userID);
+      const { productID, rating } = req.body;
       await this.productRepository.rate(userID, productID, rating);
       return res.status(200).send("Rating has been added.");
     } catch (err) {
-      console.log("err in rating is ====>", err)
-      console.log("Passing error to middleware")
+      console.log("err in rating is ====>", err);
+      console.log("Passing error to middleware");
       next(err);
     }
   }
@@ -73,18 +72,35 @@ export default class ProductController {
   async filterProducts(req, res) {
     try {
       console.log("Hi");
+      // const minPrice = parseInt(req.query.minPrice);
+      // console.log("minPrice >>>>", minPrice);
+      // const maxPrice = parseInt(req.query.maxPrice);
+      // console.log("maxPrice >>>>", maxPrice);
       const minPrice = parseInt(req.query.minPrice);
-      console.log("minPrice >>>>", minPrice);
-      const maxPrice = parseInt(req.query.maxPrice);
-      console.log("maxPrice >>>>", maxPrice);
-      const category = req.query.category;
-      const result = await this.productRepository.filter(minPrice, maxPrice, category);
-      console.log("result==========>", result);
-      res.status(200).send(result);
+
+      const categories = req.query.category;
+      
+            console.log("req.query==========>", req.query);
+            console.log("minPrice==========>", minPrice);
+            console.log("categories==========>", categories);
+            const result = await this.productRepository.filter(minPrice, categories);
+            console.log("result==========>", result);
+            
+             res.status(200).send(result);
     } catch (error) {
       console.log("err=>", error);
       return res.status(200).send("Something went wrong");
     }
-   
+  }
+
+  async averagePrice(req,res,next){
+    try{
+     const result =await this.productRepository.averageProductPricePerCategory();
+     res.status(200).send(result);
+    }
+    catch (error) {
+      console.log("err=>", error);
+      return res.status(200).send("Something went wrong");
+    }
   }
 }
