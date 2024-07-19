@@ -7,18 +7,41 @@ export default class UserController {
   constructor() {
     this.userRepository = new UserRepository();
   }
-  async signUp(req, res) {
+
+  async resetPassword(req,res,next){
+    const {newPassword} = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword,12);
+    const userID = req.userID;
+    console.log("userID ===>", userID)
+    try {
+       await this.userRepository.resetPassword(userID, hashedPassword)
+       res.status(200).send("Password is updated.");
+    } catch (error) {
+      console.log("error in reset password ==>", error);
+      console.log("passing error to the middleware");
+      next(error) 
+    }
+  }
+  async signUp(req, res,next) {
     const { name, email, password, type } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new UserModel(name, email, hashedPassword, type);
-    await this.userRepository.signUp(user);
-    res.status(201).send(user);
+    // const hashedPassword = await bcrypt.hash(password, 12);
+    try {
+      
+      const user = new UserModel(name, email, password, type);
+      await this.userRepository.signUp(user);
+      res.status(201).send(user);
+    } catch (error) {
+      next(error)
+    }
   }
 
   async signIn(req, res, next) {
     try{
       // 1. Find user by email.
       const user = await this.userRepository.findByEmail(req.body.email);
+      console.log("user ===>", user)
+      console.log("req.body.email ===>", req.body.email)
+
       if(!user){
         return res
         .status(400)

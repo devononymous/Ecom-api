@@ -14,10 +14,7 @@ const jwtAuth = (req, res, next)=>{
             token,
             secret_code
         );
-        console.log(secret_code, "secret_code runner")
         req.userID = payload.userID;
-        console.log(req.userID, "req.userID")
-        console.log("payload ==>", payload);
     } catch(err){
         // 4. return error.
         console.log(err);

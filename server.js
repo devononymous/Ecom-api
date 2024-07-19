@@ -10,7 +10,9 @@ import jwtAuth from "./src/middlewares/jwt.middleware.js";
 import apiDocs from "./swagger.json" assert { type: "json" };
 import loggerMiddleware from "./src/middlewares/logger.middleware.js";
 import { ApplicationError } from "./src/error-handler/applicationError.js";
-import { connectToMongoDB } from "./src/config/mongodb.js";
+// import { connectToMongoDB } from "./src/config/mongodb.js";
+import { connectUserMongooese } from "./src/config/mongoose.js";
+import mongoose from "mongoose";
 // 2. Create Server
 const server = express();
 
@@ -37,8 +39,11 @@ server.get("/", (req, res) => {
 // Error handling 
 server.use((err, req, res, next)=>{
    console.log(err);
+   if(err instanceof mongoose.Error.ValidationError){
+    return  res.status(400).send(err.message);
+   }
    if(err instanceof ApplicationError){
-    res.status(err.code).send(err.message);
+    return res.status(err.code).send(err.message);
    }
    // server errors
    res.status(500).send("Something went wrong . please try later")
@@ -56,6 +61,7 @@ server.use((req, res) =>
 // 5. Specify port.
 server.listen(3200, ()=>{
   console.log("Server is running at 3200");
-  connectToMongoDB();
+  // connectToMongoDB();
+   connectUserMongooese();
 });
 

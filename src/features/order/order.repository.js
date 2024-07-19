@@ -1,22 +1,56 @@
 
 import { ObjectId } from "mongodb";
-import { getDB } from "../../config/mongodb.js";
+import { getClient, getDB } from "../../config/mongodb.js";
+import OrderModel from '../order/order.model.js';
+import { ApplicationError } from "../../error-handler/applicationError.js";
+
 
 export default class OrderRepository {
     constructor(){
       this.collection = "Orders";
     }
     async placeOrder(userId){
-        //1.  Get the cartItems and calculate total amount.
-      await this.getTotalAmount(userId);
-        // 2.  Create an order Record
+      const client = getClient();
+      const session = client.startSession();
+        try {
+          const db = getDB();
+          session.startTransaction();
+            //1.  Get the cartItems and calculate total amount.
+          const items = await this.getTotalAmount(userId, session);
+          const finalTotalAmount = items.reduce((acc,item)=>acc+item.totalAmount,0)
+          console.log(finalTotalAmount)  
+          // 2.  Create an order Record 
+         const newOrder = new OrderModel(new ObjectId(userId), finalTotalAmount, new Date())
+        
+         db.collection(this.collection).insertOne(newOrder, {session});
 
-        // 3. Reduce the stock.
+         // 3. Reduce the stock.
+         for(let item of items){
+          await db.collection("products").updateOne(
+            {_id:item.productID},
+            {$inc:{stock: -item.quantity}},
+            {session}
+          )
+         }
+        //  throw new Error("Something is wrong in placeOrder")
+         // 4. Clear the cart Items.
+        await db.collection("cartItems").deleteMany({ 
+          userId: new ObjectId(userId)
 
-        // 4. Clear the cart Items.
+        },{session})
+        session.commitTransaction();
+        session.endSession();
+        return ;
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          console.log("err=>", error);
+          throw new ApplicationError("Something went wrong with database", 503);
+        }
+
     }
 
-    async  getTotalAmount(userId){
+    async  getTotalAmount(userId,session){
     
         //  get the DB
         const db = getDB();
@@ -47,8 +81,8 @@ export default class OrderRepository {
               }
             }
           }
-        ]).toArray();
-        const finalTotalAmount =items.reduce((acc,item)=> acc + item.totalAmount,0)
-        console.log("finalTotalAmount",finalTotalAmount )
+        ],{session}).toArray();
+      return items
+        console.log("items====>",items)
     }
 }
