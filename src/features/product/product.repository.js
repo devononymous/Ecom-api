@@ -1,6 +1,12 @@
 import { ObjectId } from "mongodb";
 import { getDB } from "../../config/mongodb.js";
 import { ApplicationError } from "../../error-handler/applicationError.js";
+import mongoose from "mongoose";
+import { productSchema } from "./product.schema.js";
+import { reviewSchema } from "./review.schema.js";
+
+const ProductModel = mongoose.model("Product", productSchema);
+const ReviewModel = mongoose.model("Review", reviewSchema);
 
 class ProductRepository {
   constructor() {
@@ -9,14 +15,27 @@ class ProductRepository {
 
   async add(newProduct) {
     try {
-      //  1. Get the database
-      const db = getDB();
-      // 2. Get the collection
-      const collection = db.collection(this.collection);
-      console.log(" models newProduct=>", newProduct);
-      //3. Insert the document
-      await collection.insertOne(newProduct);
-      return newProduct;
+      //1 .check if product exists
+      const productToUpdate = await ProductModel.findById(productID);
+      if (!productID) {
+        throw new Error("Product not found");
+      }
+      //1.  get the existing review
+      const userReview = await ReviewModel.findOne({
+        product: new ObjectId(productID),
+        user: new ObjectId(userID),
+      });
+      if (userReview) {
+        userReview.rating = rating;
+        await userReview.save();
+      } else {
+        const newReview = new ReviewModel({
+          product: new ObjectId(productID),
+          user: new ObjectId(userID),
+          rating: rating,
+        });
+        newReview.save();
+      }
     } catch (err) {
       console.log("err=>", err);
       throw new ApplicationError("Something went wrong with database", 503);
@@ -45,17 +64,17 @@ class ProductRepository {
     }
   }
 
-  // update with  chatgpt 
+  // update with  chatgpt
   async filter(minPrice, categories) {
     try {
       const db = getDB();
       const collection = db.collection(this.collection);
       let filterExpression = {};
-  
+
       if (minPrice) {
         filterExpression.price = { $gte: parseFloat(minPrice) };
       }
-  
+
       console.log(categories, "before conversion");
       try {
         categories = categories.replace(/'/g, '"');
@@ -63,16 +82,16 @@ class ProductRepository {
         throw new ApplicationError("Invalid categories format", 400);
       }
       console.log(categories, "after conversion");
-  
+
       if (categories && Array.isArray(categories)) {
         filterExpression = {
           $or: [{ category: { $in: categories } }, filterExpression],
         };
       }
-  
+
       return collection
         .find(filterExpression)
-        .project({ name: 1, price: 1 , _id:0})
+        .project({ name: 1, price: 1, _id: 0 })
         .toArray();
     } catch (err) {
       console.log(err);
@@ -106,21 +125,24 @@ class ProductRepository {
     }
   }
 
-  async averageProductPricePerCategory(){
+  async averageProductPricePerCategory() {
     try {
       const db = getDB();
-    return  await db.collection(this.collection)
-      .aggregate([{
-        // stage 1. Get average price per category
-        $group:{
-          _id:"$category",
-          averagePrice:{$avg:"$price"}
-        }
-      }]).toArray();
+      return await db
+        .collection(this.collection)
+        .aggregate([
+          {
+            // stage 1. Get average price per category
+            $group: {
+              _id: "$category",
+              averagePrice: { $avg: "$price" },
+            },
+          },
+        ])
+        .toArray();
     } catch (error) {
-      console.log(error , "error in average price");
+      console.log(error, "error in average price");
       throw new ApplicationError("Something went wrong with database", 500);
-
     }
   }
 }

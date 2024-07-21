@@ -388,3 +388,4 @@
 {"level":"info","message":{"method":"POST","requireBody":{},"timestamp":"2024-07-11T05:54:12.196Z","url":"/api/orders"},"service":"request-logging"}
 {"level":"info","message":{"method":"POST","requireBody":{},"timestamp":"2024-07-11T05:54:31.701Z","url":"/api/orders"},"service":"request-logging"}
 {"level":"info","message":{"method":"POST","requireBody":{},"timestamp":"2024-07-12T07:27:46.877Z","url":"/api/orders"},"service":"request-logging"}
+{"level":"info","message":{"method":"POST","requireBody":{"productID":"66838b891d2aadf6b8712c3e","rating":2.5},"timestamp":"2024-07-20T18:26:22.847Z","url":"/api/products/rate"},"service":"request-logging"}
