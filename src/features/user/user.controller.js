@@ -22,6 +22,8 @@ export default class UserController {
       next(error);
     }
   }
+
+
   async signUp(req, res, next) {
     const { name, email, password, type } = req.body;
     try {
@@ -29,6 +31,11 @@ export default class UserController {
       const user = new UserModel(name, email, password, type);
       await this.userRepository.signUp(user);
       
+      // console.log("user after hashed=====>", user);
+      // res.status(201).send(user);
+      const hashedPassword = await bcrypt.hash(password, 12);
+      user.password = hashedPassword;
+      await this.userRepository.updateUser(user);     
       console.log("user after hashed=====>", user);
       res.status(201).send(user);
     } catch (err) {
@@ -51,9 +58,10 @@ export default class UserController {
               userID: user._id,
               email: user.email,
             },
-            "AIb6d35fvJM4O9pXqXQNla2jBCH9kuLz",
+            // "AIb6d35fvJM4O9pXqXQNla2jBCH9kuLz",
+            "e7jbb9ARMRTLqImldBRuX2iuW1tblDj9",
             {
-              expiresIn: "1h",
+              expiresIn: "5h",
             }
           );
           // 4. Send token.

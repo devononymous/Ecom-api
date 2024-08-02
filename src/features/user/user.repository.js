@@ -56,4 +56,8 @@ export default class UserRepository {
       throw new ApplicationError("Something went wrong with database", 500);
     }
   }
+
+  async updateUser(user) {
+    await UserModel.updateOne({ email: user.email }, { password: user.password });
+  }
 }

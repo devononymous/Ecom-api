@@ -13,7 +13,7 @@ const productController = new ProductController();
 // localhost:/api/products
 productRouter.get("/", (req,res)=>{productController.getAllProducts(req,res)})
 
-productRouter.post("/", upload.single('imageUrl'), (req,res)=>{productController.addProducts(req,res)}); 
+productRouter.post("/", upload.single('imageUrl'), (req,res,next)=>productController.addProduct(req,res,next)); 
 
 
 productRouter.post('/rate',(req,res,next)=>{ productController.rateProduct(req,res,next)}); 

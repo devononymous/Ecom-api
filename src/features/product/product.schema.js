@@ -9,5 +9,9 @@ export const productSchema = new mongoose.Schema({
     reviews: [{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Review'
+    }],
+    categories: [{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Category'
     }]
 })

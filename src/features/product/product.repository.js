@@ -4,43 +4,33 @@ import { ApplicationError } from "../../error-handler/applicationError.js";
 import mongoose from "mongoose";
 import { productSchema } from "./product.schema.js";
 import { reviewSchema } from "./review.schema.js";
-
+import { categorySchema } from "./category.schema.js";
 const ProductModel = mongoose.model("Product", productSchema);
 const ReviewModel = mongoose.model("Review", reviewSchema);
+const CategoryModel = mongoose.model("Category", categorySchema);
 
 class ProductRepository {
   constructor() {
     this.collection = "products";
   }
 
-  async add(newProduct) {
-    try {
-      //1 .check if product exists
-      const productToUpdate = await ProductModel.findById(productID);
-      if (!productID) {
-        throw new Error("Product not found");
-      }
-      //1.  get the existing review
-      const userReview = await ReviewModel.findOne({
-        product: new ObjectId(productID),
-        user: new ObjectId(userID),
-      });
-      if (userReview) {
-        userReview.rating = rating;
-        await userReview.save();
-      } else {
-        const newReview = new ReviewModel({
-          product: new ObjectId(productID),
-          user: new ObjectId(userID),
-          rating: rating,
-        });
-        newReview.save();
-      }
-    } catch (err) {
-      console.log("err=>", err);
-      throw new ApplicationError("Something went wrong with database", 503);
+  async add(productData){
+    try{
+        // 1. Adding Product
+        console.log("productData========>",productData)
+        productData.categories = productData.category.split(',').map(e=> e.trim());
+        const newProduct = new ProductModel(productData);
+        const savedProduct = await newProduct.save();
+        // 2. Update categories.
+        await CategoryModel.updateMany(
+            {_id: {$in: productData.categories}},
+            {$push: {products: new ObjectId(savedProduct._id)}}
+        )
+    }catch(err){
+        console.log(err);
+        throw new ApplicationError("Something went wrong with database", 500);    
     }
-  }
+}
 
   async getAll() {
     try {
@@ -98,32 +88,59 @@ class ProductRepository {
       throw new ApplicationError("Something went wrong with database", 500);
     }
   }
-  async rate(userID, productID, rating) {
-    try {
-      const db = getDB();
-      const collection = db.collection(this.collection);
+  // async rate(userID, productID, rating) {
+  //   try {
+  //     const db = getDB();
+  //     const collection = db.collection(this.collection);
 
-      // 1. Removes existing entry
-      await collection.updateOne(
-        { _id: new ObjectId(productID) },
-        {
-          $pull: { ratings: { userID: new ObjectId(userID) } },
-        }
-      );
+  //     // 1. Removes existing entry
+  //     await collection.updateOne(
+  //       { _id: new ObjectId(productID) },
+  //       {
+  //         $pull: { ratings: { userID: new ObjectId(userID) } },
+  //       }
+  //     );
 
-      // 2. Add new entry
-      await collection.updateOne(
-        { _id: new ObjectId(productID) },
-        {
-          $push: { ratings: { userID: new ObjectId(userID), rating } },
+  //     // 2. Add new entry
+  //     await collection.updateOne(
+  //       { _id: new ObjectId(productID) },
+  //       {
+  //         $push: { ratings: { userID: new ObjectId(userID), rating } },
+  //       }
+  //     );
+  //     // }
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new ApplicationError("Something went wrong with database", 500);
+  //   }
+  // }
+  async rate(userID, productID, rating){
+    try{
+        // 1. Check if product exists
+        const productToUpdate = await ProductModel.findById(productID);
+        if(!productToUpdate){
+            throw new Error("Product not found")
         }
-      );
-      // }
-    } catch (error) {
-      console.log(err);
-      throw new ApplicationError("Something went wrong with database", 500);
+
+        // Find the existing review
+        const userReview = await ReviewModel.findOne({product: new ObjectId(productID), user: new ObjectId(userID)});
+        if(userReview){
+            userReview.rating = rating;
+            await userReview.save();
+        }else{
+            const newReview = new ReviewModel({
+                product: new ObjectId(productID),
+                user: new ObjectId(userID),
+                rating: rating
+            });
+            newReview.save();
+        }
+
+    }catch(err){
+        console.log(err);
+        throw new ApplicationError("Something went wrong with database", 500);    
     }
-  }
+}
 
   async averageProductPricePerCategory() {
     try {

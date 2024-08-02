@@ -16,26 +16,26 @@ export default class ProductController {
     }
   }
 
-  async addProducts(req, res) {
-    try {
-      const { name, category, price, sizes } = req.body;
+  async addProduct(req, res) {
+    try{
+      console.log("requsting added product data ===>",req.body);
+      const { name,  price, sizes, categories, description} = req.body;
 
-      const newProduct = new ProductModel(
-        name,
-        null,
-        category,
-        req.file.filename,
-        parseFloat(price),
-        sizes.split(",")
-      );
+      console.log(typeof(name))
+      console.log(typeof(description))
+      console.log(typeof (price))
+      console.log(typeof( sizes))
+      console.log(typeof (categories))
 
-      const createdRecord = await this.productRepository.add(newProduct);
-      console.log("createdRecord==>", createdRecord);
-      res.status(201).send(createdRecord);
-    } catch (err) {
-      console.log("err=>", err);
-      throw new ApplicationError("Something went wrong with database", 503);
-    }
+    const newProduct = new ProductModel(name, description, price,
+    req?.file?.filename, categories, sizes?.split(',')
+    );
+    const createdProduct = await this.productRepository.add(newProduct);
+    res.status(201).send(createdProduct);
+  }catch(err){
+    console.log(err);
+    return res.status(200).send("Something went wrong");
+  }
   }
 
   async rateProduct(req, res, next) {

@@ -5,9 +5,9 @@ export default class ProductModel {
   constructor(
     name,
     desc,
-    category,
-    imageUrl,
     price,
+    imageUrl,
+    category,
     sizes,
     id
   ) {
@@ -46,7 +46,7 @@ export default class ProductModel {
    // 1. Validate user and product
   const user =  UserModel.getAll().find(u => u.id == userID);
    if(!user){
-    throw new ApplicationError("User not found",400);
+    throw new ApplicationError("User not found",404);
    }
 
    //validate product : If product exists or not 
